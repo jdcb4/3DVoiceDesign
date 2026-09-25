@@ -1,6 +1,18 @@
 import { test, expect } from "@playwright/test";
 import { readFile, writeFile } from "node:fs/promises";
 
+test.afterEach(async ({ page, request }, testInfo) => {
+  if (testInfo.status === testInfo.expectedStatus) return;
+  const id = await page.locator("#agent-design-id").textContent().catch(() => null);
+  const state = id ? await request.get(`/api/designs/${id}`).then(r => r.json()).catch(String) : null;
+  const diagnostics = {state,
+    status: await page.locator("#build-status").textContent().catch(String),
+    error: await page.locator("#error-details").textContent().catch(String),
+    toast: await page.locator("#toast").textContent().catch(String)};
+  console.log("Failed workbench state:", JSON.stringify(diagnostics));
+  await testInfo.attach("workbench-state", {body: JSON.stringify(diagnostics, null, 2), contentType: "application/json"});
+});
+
 test.beforeEach(async ({ request }) => {
   await request.put("/api/workspace/active", {
     data: { design_id: "mounting-plate" },

@@ -3,8 +3,10 @@ export default defineConfig({
   testDir: "./tests/ui",
   fullyParallel: false,
   workers: 1,
-  timeout: 60000,
-  expect: { timeout: 20000 },
+  // Hosted Windows runners combine cold native CAD imports with software WebGL.
+  // Allow the same bounded build window as the backend instead of a 20s UI limit.
+  timeout: process.env.CI ? 180000 : 60000,
+  expect: { timeout: process.env.CI ? 90000 : 20000 },
   use: {
     baseURL: "http://127.0.0.1:8744",
     viewport: { width: 1440, height: 980 },

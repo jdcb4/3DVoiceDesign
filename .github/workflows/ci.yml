@@ -24,8 +24,13 @@ jobs:
       - run: npm run build
       - run: uv run ruff check voicedesign tests scripts
       - run: uv run pytest -q
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps --only-shell chromium
       - run: npm run test:ui
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-diagnostics-${{ matrix.os }}
+          path: test-results/
       - run: uv build --out-dir artifacts
       - run: uv export --frozen --no-dev --no-emit-project --output-file artifacts/requirements-runtime.txt --quiet
       - name: Install wheel in a separate environment

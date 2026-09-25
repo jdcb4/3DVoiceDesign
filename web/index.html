@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f8fa" />
+    <title>VoiceDesign3D · Local CAD workbench</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="VoiceDesign3D home"
+        ><span class="brand-mark"><i data-lucide="box"></i></span
+        ><span
+          >VoiceDesign<span class="brand-suffix">3D</span
+          ><small>LOCAL CAD WORKBENCH</small></span
+        ></a
+      >
+      <div class="document-picker">
+        <i data-lucide="folder-open"></i
+        ><select id="design-select" aria-label="Current design"></select
+        ><button
+          class="icon-button"
+          id="new-design"
+          title="New design"
+          aria-label="New design"
+        >
+          <i data-lucide="plus"></i>
+        </button>
+      </div>
+      <div class="top-actions">
+        <span class="local-badge"><span></span>Local workspace</span
+        ><button id="save-checkpoint" class="button">
+          <i data-lucide="bookmark-plus"></i
+          ><span>Save checkpoint</span></button
+        ><button id="export-button" class="button primary">
+          <i data-lucide="download"></i>Export<i data-lucide="chevron-down"></i>
+        </button>
+      </div>
+    </header>
+    <div class="workbench">
+      <aside class="left-panel">
+        <div class="panel-heading">
+          <span>MODEL</span><span class="pill">mm</span>
+        </div>
+        <div class="model-identity">
+          <span class="model-icon"><i data-lucide="box"></i></span>
+          <div>
+            <h1 id="design-name">Opening workspace…</h1>
+            <span id="solid-count">Parametric part</span>
+          </div>
+        </div>
+        <div class="feature-heading">
+          <span>Feature history</span><span id="feature-count">0</span>
+        </div>
+        <div class="feature-editor-toolbar">
+          <button class="button" id="add-feature" disabled><i data-lucide="plus"></i>Add feature</button>
+          <span id="model-mode" class="pill">Opening</span>
+        </div>
+        <p id="editor-note" class="editor-note"></p>
+        <div
+          id="feature-list"
+          class="feature-list"
+          aria-label="Model feature history"
+        ></div>
+        <div id="feature-actions" class="feature-actions" hidden>
+          <button class="button" id="edit-feature">Edit feature</button>
+          <button class="icon-button" id="move-feature-up" aria-label="Move feature earlier" title="Move earlier">↑</button>
+          <button class="icon-button" id="move-feature-down" aria-label="Move feature later" title="Move later">↓</button>
+          <button class="text-button" id="suppress-feature">Suppress</button>
+          <button class="text-button danger-text" id="delete-feature">Delete</button>
+        </div>
+        <button class="text-button history-link" id="history-button">
+          <i data-lucide="history"></i>Saved checkpoints<i
+            data-lucide="chevron-right"
+          ></i>
+        </button>
+        <div class="left-bottom">
+          <div class="voice-note">
+            <span class="eyebrow"
+              ><i data-lucide="audio-lines"></i>MADE IN CONVERSATION</span
+            >
+            <p>Say it. Shape it.</p>
+            <span
+              >Talk to Codex while this view is open. Your model updates as the
+              design changes.</span
+            >
+            <div class="prompt-example">
+              “Make it wider and round the corners.”
+            </div>
+          </div>
+          <button class="text-button" id="source-button">
+            <i data-lucide="file-code-2"></i>View design source<i
+              data-lucide="arrow-up-right"
+            ></i>
+          </button>
+        </div>
+      </aside>
+      <main class="viewport-panel">
+        <div class="viewport-toolbar">
+          <div class="workspace-label">
+            <i data-lucide="component"></i>Part studio<span
+              class="separator"
+            ></span
+            ><span id="build-status" role="status">Connecting</span>
+          </div>
+          <button id="guide-button" class="text-button">
+            <i data-lucide="book-open"></i>Modeling guide
+          </button>
+        </div>
+        <div id="viewport" aria-label="Interactive 3D model viewport">
+          <div class="viewport-heading">
+            <span id="model-subtitle">YOUR LOCAL DESIGN SPACE</span
+            ><span class="live-label"><span></span>LIVE PREVIEW</span>
+          </div>
+          <div id="viewport-message" class="viewport-message">
+            Building your first view…
+          </div>
+          <div class="view-controls" aria-label="Camera views">
+            <button data-view="iso" class="active" title="Isometric view (1)">
+              ISO</button
+            ><button data-view="top" title="Top view (2)">TOP</button
+            ><button data-view="front" title="Front view (3)">FRONT</button
+            ><button data-view="right" title="Right view (4)">RIGHT</button>
+          </div>
+          <div class="viewport-tools">
+            <button
+              id="fit-button"
+              class="icon-button"
+              aria-label="Fit model to view"
+              title="Fit model (F)"
+            >
+              <i data-lucide="maximize"></i></button
+            ><span></span
+            ><button
+              id="edges-button"
+              class="icon-button active"
+              aria-label="Toggle model edges"
+              title="Edges (E)"
+            >
+              <i data-lucide="scan-line"></i></button
+            ><button
+              id="measure-button"
+              class="icon-button"
+              aria-label="Measure between two surface points"
+              aria-pressed="false"
+              title="Measure between two surface points"
+            >
+              <i data-lucide="ruler"></i></button
+            ><button
+              id="grid-button"
+              class="icon-button active"
+              aria-label="Toggle ground grid"
+              title="Grid (G)"
+            >
+              <i data-lucide="grid-2x2"></i>
+            </button>
+          </div>
+          <div id="selection-readout" class="selection-readout" hidden aria-live="polite"></div>
+          <div id="model-stats" class="model-stats"></div>
+          <div class="orbit-hint">
+            <span>Drag to orbit</span><b>·</b><span>Right-drag to pan</span
+            ><b>·</b><span>Scroll to zoom</span>
+          </div>
+          <div class="axis-legend">
+            <span class="axis-z">Z</span><span class="axis-y">Y</span
+            ><span class="axis-x">X</span>
+          </div>
+        </div>
+        <div id="error-banner" class="error-banner" hidden>
+          <i data-lucide="triangle-alert"></i>
+          <div>
+            <strong>Design needs an adjustment</strong
+            ><span
+              >The previous preview may be out of date. Fix the model or restore
+              a checkpoint.</span
+            >
+            <details>
+              <summary>Build details</summary>
+              <pre id="error-details"></pre>
+            </details>
+          </div>
+        </div>
+      </main>
+      <aside class="right-panel">
+        <section class="agent-card" aria-label="AI agent connection">
+          <div class="agent-card-heading">
+            <strong>AI connection</strong>
+            <button id="copy-agent-context" class="icon-button" type="button"
+              aria-label="Copy AI connection instructions" title="Copy AI connection instructions" disabled>
+              <i data-lucide="copy"></i>
+            </button>
+          </div>
+          <span class="agent-label">Model ID</span>
+          <code id="agent-design-id">No model selected</code>
+          <span class="agent-label">Model API</span>
+          <code id="agent-api-url">—</code>
+          <p>Copy these details into your AI conversation to work on this model.</p>
+          <button id="view-agent-context" class="text-button" type="button" disabled>View instructions</button>
+          <span class="agent-label">Revision</span><code id="agent-revision">—</code>
+          <span id="collaboration-status" class="collaboration-status">Saved edits are shared with your agent.</span>
+          <details id="latency-details" class="latency-details" hidden>
+            <summary id="latency-summary">Last build timing</summary>
+            <dl id="latency-values"></dl>
+            <small>Browser and server measurements. Voice and agent planning time are recorded only when provided by the caller.</small>
+          </details>
+        </section>
+        <div class="panel-heading">
+          <span>PARAMETERS</span><i data-lucide="sliders-horizontal"></i>
+        </div>
+        <p class="panel-intro">Small changes. Exact dimensions.</p>
+        <form id="parameter-form">
+          <div id="parameter-fields"></div>
+          <div id="conflict-note" class="conflict-note" hidden>
+            The source changed while you were editing. Reload parameters to use
+            the latest design.
+          </div>
+          <div class="parameter-actions">
+            <button
+              id="apply-button"
+              class="button primary"
+              type="submit"
+              disabled
+            >
+              <i data-lucide="check"></i>Apply changes</button
+            ><button
+              id="reset-parameters"
+              class="icon-button"
+              type="button"
+              title="Reload saved parameters"
+              aria-label="Reload saved parameters"
+            >
+              <i data-lucide="rotate-ccw"></i>
+            </button>
+          </div>
+          <span id="parameter-status" class="save-hint"
+            >Changes are saved locally when applied.</span
+          >
+        </form>
+        <div class="design-details">
+          <div class="eyebrow"><i data-lucide="info"></i>DESIGN NOTES</div>
+          <p id="design-description"></p>
+          <details>
+            <summary>Print orientation & fit</summary>
+            <p id="print-notes"></p>
+          </details>
+        </div>
+        <div class="storage-note">
+          <i data-lucide="hard-drive"></i>
+          <div>
+            <strong>Your files. Your workspace.</strong
+            ><span>Editable source and checkpoints stay on this computer.</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <footer class="statusbar">
+      <span
+        ><span class="status-dot"></span
+        ><span id="footer-status">Local engine</span></span
+      ><span id="source-path"></span
+      ><span>CAD: CadQuery<span class="footer-divider">/</span>Units: mm</span>
+    </footer>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <dialog id="modal">
+      <div class="modal-header">
+        <h2 id="modal-title"></h2>
+        <button class="icon-button" id="close-modal" aria-label="Close dialog">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div id="modal-content"></div>
+    </dialog>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>

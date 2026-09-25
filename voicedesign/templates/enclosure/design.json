@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "Open enclosure",
+  "description": "A rounded, open-top enclosure with a consistent wall and base.",
+  "units": "mm",
+  "parameters": {
+    "width": {"label": "Width", "value": 80, "min": 30, "max": 200, "step": 1},
+    "depth": {"label": "Depth", "value": 55, "min": 25, "max": 200, "step": 1},
+    "height": {"label": "Height", "value": 25, "min": 8, "max": 150, "step": 1},
+    "wall": {"label": "Wall thickness", "value": 2.4, "min": 1.2, "max": 5, "step": 0.2},
+    "corner_radius": {"label": "Corner radius", "value": 6, "min": 2, "max": 12, "step": 0.5}
+  },
+  "print_notes": "Print with the opening upward and the flat base on XY. Default design: support-free FDM in PLA/PETG, 0.4 mm nozzle, 0.2 mm layers; 2.4 mm walls and base."
+}

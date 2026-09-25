@@ -1,0 +1,68 @@
+name: Validate and package
+on:
+  push:
+  pull_request:
+  workflow_call:
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.21"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: uv sync --frozen
+      - run: npm ci
+      - run: npm run build
+      - run: uv run ruff check voicedesign tests scripts
+      - run: uv run pytest -q
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:ui
+      - run: uv build --out-dir artifacts
+      - run: uv export --frozen --no-dev --no-emit-project --output-file artifacts/requirements-runtime.txt --quiet
+      - name: Install wheel in a separate environment
+        shell: bash
+        run: |
+          uv venv --python 3.12 .install-test
+          if [ "$RUNNER_OS" = Windows ]; then
+            py=.install-test/Scripts/python.exe
+          else
+            py=.install-test/bin/python
+          fi
+          uv pip install --python "$py" --constraints artifacts/requirements-runtime.txt artifacts/*.whl
+          "$py" scripts/smoke_installed.py
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: distributions
+          path: artifacts/*
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: docker build -t voicedesign3d:ci .
+      - name: Container smoke
+        run: |
+          docker run -d --name cad -p 127.0.0.1:8743:8743 voicedesign3d:ci
+          for attempt in $(seq 1 30); do
+            curl --fail http://127.0.0.1:8743/api/health && break || sleep 1
+          done
+          python scripts/example_part.py --port 8743 --output /tmp/cad-export
+          docker restart cad
+          for attempt in $(seq 1 30); do
+            curl --fail http://127.0.0.1:8743/api/health && break || sleep 1
+          done
+          curl --fail http://127.0.0.1:8743/api/designs
+      - if: always()
+        run: docker logs cad

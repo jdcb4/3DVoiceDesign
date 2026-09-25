@@ -1,0 +1,12 @@
+services:
+  voicedesign:
+    build: .
+    image: voicedesign3d:local
+    ports:
+      - "127.0.0.1:8743:8743"
+    volumes:
+      - voicedesign-data:/data
+    restart: unless-stopped
+    stop_grace_period: 120s
+volumes:
+  voicedesign-data:

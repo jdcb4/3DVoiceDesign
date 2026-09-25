@@ -1,0 +1,4 @@
+interface:
+  display_name: "VoiceDesign3D"
+  short_description: "Design and edit local CAD models through conversation"
+  default_prompt: "Use $voicedesign3d to create a simple pencil holder in my local CAD workbench."

@@ -1,0 +1,42 @@
+[project]
+name = "voicedesign3d"
+version = "0.1.0"
+description = "A local, conversation-driven parametric CAD workbench"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "cadquery==2.6.1", "fastapi>=0.115,<1", "uvicorn>=0.34,<1",
+  # Verified Windows combination; newer unconstrained dependencies crashed on CAD shutdown.
+  "casadi==3.7.2", "numpy==2.2.6",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx>=0.28,<1", "trimesh>=4,<5", "ruff>=0.11,<1"]
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+voicedesign = "voicedesign.launcher:main"
+voicedesign-client = "voicedesign.client:main"
+
+[project.urls]
+Repository = "https://github.com/jdcb4/3DVoiceDesign"
+
+[tool.hatch.build.targets.wheel]
+packages = ["voicedesign"]
+
+[tool.hatch.build]
+artifacts = ["voicedesign/static/**"]
+exclude = ["**/__pycache__", "**/*.pyc"]
+
+[tool.hatch.build.targets.sdist]
+include = ["voicedesign", "web", "docs/api.md", "docs/storage.md", "docs/deployment.md", "docs/feature-api.md", "docs/modeling.md", "docs/codex-setup.md", "integrations", "tests", "scripts", "pyproject.toml", "uv.lock", "package.json", "package-lock.json", "vite.config.js", "tsconfig.json", "playwright.config.ts", "README.md", "CHANGELOG.md", "THIRD_PARTY_NOTICES.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100

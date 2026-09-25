@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "name": "Mounting plate",
+  "description": "A rounded plate with four mounting holes. A good first conversation.",
+  "units": "mm",
+  "parameters": {
+    "width": {"label": "Width", "value": 80, "min": 30, "max": 250, "step": 1},
+    "depth": {"label": "Depth", "value": 50, "min": 25, "max": 200, "step": 1},
+    "thickness": {"label": "Thickness", "value": 6, "min": 2, "max": 30, "step": 0.5},
+    "corner_radius": {"label": "Corner radius", "value": 6, "min": 0.5, "max": 20, "step": 0.5},
+    "hole_diameter": {"label": "Hole diameter", "value": 5, "min": 2, "max": 12, "step": 0.1},
+    "hole_inset": {"label": "Hole inset", "value": 10, "min": 4, "max": 30, "step": 0.5, "description": "Distance from each straight edge to the hole center."},
+    "edge_chamfer": {"label": "Edge chamfer", "value": 0.6, "min": 0.1, "max": 1, "step": 0.1}
+  },
+  "print_notes": "Print flat on the XY base, holes vertical. Default design: support-free FDM, PLA/PETG, 0.4 mm nozzle, 0.2 mm layers. Verify screw fit with a test hole; no printer compensation is applied."
+}

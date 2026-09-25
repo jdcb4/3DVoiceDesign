@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>VoiceDesign3D API</title>
+<style>body{font:16px system-ui;max-width:1100px;margin:40px auto;padding:0 24px;color:#20302b;background:#f6f8f7}a{color:#166853}summary{cursor:pointer;padding:12px}details{background:white;border:1px solid #c9d5cf;border-radius:8px;margin:10px 0}pre{padding:16px;overflow:auto;font-size:13px}input{padding:10px;width:90%}code{font-family:monospace}</style>
+<h1>VoiceDesign3D API <span id="version"></span></h1>
+<p>Local CAD API v1. Lengths are millimeters; volumes are cubic millimeters. This reference works offline.</p>
+<p><a href="/">Viewer</a> · <a href="/openapi.json">OpenAPI JSON</a> · <a href="/api/capabilities">Capabilities</a> · <a href="/api/operations/schema">Batch schema</a></p>
+<p>Read a design's <code>/features</code>, then send its revision as <code>expected_revision</code> with your operation batch. Success means verified and saved. HTTP 409 requires rereading and reconciling; 422 means the requested batch was not saved. After a timeout or lost response, inspect the trace and current revision before retrying. Trace IDs detect duplicates; they do not replay cached responses.</p>
+<p>Allow 120 seconds for a batch (CAD execution has a 90-second limit; queue time is additional). Ordinary requests use a 15-second client timeout. No automatic write retries.</p>
+<label>Filter endpoints <input id="filter" placeholder="features, export, history…"></label>
+<main id="routes"></main><h2>Schema definitions</h2><div id="schemas"></div>
+<script>
+function item(parent,title,value){const d=document.createElement('details');const s=document.createElement('summary');s.textContent=title;const p=document.createElement('pre');p.textContent=JSON.stringify(value,null,2);d.append(s,p);parent.append(d);return d;}
+fetch('/openapi.json').then(r=>r.json()).then(spec=>{document.querySelector('#version').textContent=spec.info.version;
+for(const [path,methods] of Object.entries(spec.paths)){for(const [method,data] of Object.entries(methods)){item(document.querySelector('#routes'),method.toUpperCase()+' '+path,data);}}
+for(const [name,schema] of Object.entries(spec.components.schemas)){item(document.querySelector('#schemas'),name,schema);}
+document.querySelector('#filter').addEventListener('input',e=>{for(const d of document.querySelector('#routes').children)d.hidden=!d.firstChild.textContent.toLowerCase().includes(e.target.value.toLowerCase());});
+}).catch(e=>{document.querySelector('#routes').textContent='Unable to load API schema: '+e.message;});
+</script></html>

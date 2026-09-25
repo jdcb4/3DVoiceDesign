@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "name": "Turned knob",
+  "description": "A revolved profile with a central shaft bore and a chamfered top.",
+  "units": "mm",
+  "parameters": {
+    "diameter": {"label": "Base diameter", "value": 36, "min": 20, "max": 80, "step": 1},
+    "height": {"label": "Height", "value": 22, "min": 10, "max": 60, "step": 1},
+    "bore": {"label": "Shaft bore", "value": 6.4, "min": 3, "max": 16, "step": 0.1}
+  },
+  "print_notes": "Print broad base down, shaft bore vertical. Default design: support-free FDM in PLA/PETG, 0.4 mm nozzle, 0.2 mm layers. Bore includes 0.4 mm total clearance for a nominal 6 mm shaft; test fit before a final print."
+}

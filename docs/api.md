@@ -63,7 +63,8 @@ is a string or an array of validation issues. Batch failures additionally expose
 | 500 / timeout / connection loss | Outcome uncertain; inspect trace and current revision before another write |
 
 The client uses 15 seconds for ordinary requests, 120 seconds for a batch, and a
-110-second status-wait deadline. CAD execution has a 90-second limit; queue time
+110-second status-wait deadline. The CAD worker has a 90-second limit, including
+native-library import/startup, not just geometry computation; queue time
 is additional, so a client timeout does not establish failure or cancel the edit.
 Prefer one in-flight geometry batch per workspace. No automatic write retries.
 Read-only requests may be retried with bounded backoff after service recovery.

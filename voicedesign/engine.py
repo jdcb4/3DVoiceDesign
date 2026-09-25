@@ -243,7 +243,8 @@ class Engine:
         except (subprocess.TimeoutExpired, TimeoutError):
             state.update(
                 status="error",
-                error=f"Build exceeded {self.timeout} seconds. Simplify the model or fix a loop.",
+                error=f"Build exceeded {self.timeout} seconds, including worker startup. "
+                "Check machine load, model complexity, or a loop in custom code.",
             )
         except Exception as error:  # noqa: BLE001 -- surface any worker failure to the UI
             state.update(status="error", error=str(error))

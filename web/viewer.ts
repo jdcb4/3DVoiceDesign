@@ -34,6 +34,14 @@ export class Viewer {
   private measurement = false;
   private firstPoint: THREE.Vector3 | null = null;
   private pointerStart = new THREE.Vector2();
+  private renderFrame: number | null = null;
+  private requestRender = () => {
+    if (this.renderFrame !== null) return;
+    this.renderFrame = window.requestAnimationFrame(() => {
+      this.renderFrame = null;
+      this.renderNow();
+    });
+  };
   onPick: ((pick: SurfacePick) => void) | null = null;
 
   constructor(private container: HTMLElement) {
@@ -47,6 +55,10 @@ export class Viewer {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.1;
     this.controls.screenSpacePanning = true;
+    // OrbitControls emits change while moving and while damping settles. Idle
+    // CAD scenes must not continuously consume the CPU on software WebGL hosts.
+    this.controls.addEventListener("change", this.requestRender);
+    this.renderer.domElement.addEventListener("webglcontextrestored", this.requestRender);
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x778a99, 2.6));
     const key = new THREE.DirectionalLight(0xffffff, 3.2);
     key.position.set(-70, -90, 180);
@@ -95,10 +107,6 @@ export class Viewer {
     });
     this.setView("iso");
     new ResizeObserver(() => this.resize()).observe(container);
-    this.renderer.setAnimationLoop(() => {
-      this.controls.update();
-      this.renderer.render(this.scene, this.camera);
-    });
   }
 
   private resize() {
@@ -111,6 +119,7 @@ export class Viewer {
     this.camera.bottom = -this.span / 2;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+    this.requestRender();
   }
 
   load(data: MeshData, reset: boolean) {
@@ -159,10 +168,15 @@ export class Viewer {
     this.grid.scale.setScalar(gridScale);
     if (!this.hasModel || reset) this.fit();
     this.hasModel = true;
+    this.requestRender();
   }
 
   /** Render synchronously so timing measures drawing, not an arbitrary animation wait. */
   renderNow() {
+    if (this.renderFrame !== null) {
+      window.cancelAnimationFrame(this.renderFrame);
+      this.renderFrame = null;
+    }
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
@@ -175,6 +189,7 @@ export class Viewer {
     marker.position.copy(point);
     marker.renderOrder = 10;
     this.annotations.add(marker);
+    this.requestRender();
   }
 
   private clearAnnotations() {
@@ -187,6 +202,7 @@ export class Viewer {
       }
     }
     this.firstPoint = null;
+    this.requestRender();
   }
 
   setMeasurement(enabled: boolean) {
@@ -247,15 +263,18 @@ export class Viewer {
     this.controls.target.copy(this.center);
     this.camera.lookAt(this.center);
     this.controls.update();
+    this.requestRender();
   }
 
   toggleEdges() {
     this.edgesVisible = !this.edgesVisible;
     if (this.edgeLines) this.edgeLines.visible = this.edgesVisible;
+    this.requestRender();
     return this.edgesVisible;
   }
   toggleGrid() {
     this.grid.visible = !this.grid.visible;
+    this.requestRender();
     return this.grid.visible;
   }
 }

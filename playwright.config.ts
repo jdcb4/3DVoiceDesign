@@ -3,6 +3,7 @@ export default defineConfig({
   testDir: "./tests/ui",
   fullyParallel: false,
   workers: 1,
+  maxFailures: process.env.CI ? 1 : undefined,
   // Hosted Windows runners combine cold native CAD imports with software WebGL.
   // Allow the same bounded build window as the backend instead of a 20s UI limit.
   timeout: process.env.CI ? 180000 : 60000,

@@ -9,5 +9,6 @@ First packaged local release.
 - Transactional CAD edits, shared selection, checkpoints, STL/STEP/source exports.
 - Draft portable app skill; no automatic skill installation.
 - Windows/Linux CI, installed-wheel smoke checks, and optional Docker deployment.
+- Viewer draws on scene/camera changes instead of competing with CAD work while idle.
 
 Trusted local CAD only. Not a remote multi-user service or Python sandbox.

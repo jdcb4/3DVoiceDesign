@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from voicedesign import API_VERSION, __version__
 from voicedesign.api_models import BatchError, ErrorResponse
 from voicedesign.config import PACKAGE, Workspace, resolve_workspace
-from voicedesign.launcher import exclusive_lock, main, stop
+from voicedesign.launcher import exclusive_lock, main, process_identity, recorded_process, stop
 from voicedesign.server import create_app
 
 
@@ -75,6 +75,38 @@ def test_stop_does_not_send_to_an_unverified_process(tmp_path, monkeypatch):
     )
     monkeypatch.setattr("voicedesign.launcher.health", lambda port: {"app": "another-service"})
     assert stop(workspace)["status"] == "stopped"
+
+
+def test_process_identity_rejects_recycled_pid():
+    import os
+
+    identity = process_identity(os.getpid())
+    assert recorded_process(identity).pid == os.getpid()
+    assert recorded_process({**identity, "created": identity["created"] - 1}) is None
+    assert recorded_process({}) is None
+
+
+def test_stop_waits_for_process_exit_after_record_removal(tmp_path, monkeypatch):
+    import io
+
+    monkeypatch.setenv("VOICEDESIGN_HOME", str(tmp_path / "home"))
+    workspace = Workspace(tmp_path / "workspace")
+    process = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(2)"])
+    try:
+        record = {
+            "instance_id": "verified",
+            "token": "local",
+            "process": process_identity(process.pid),
+        }
+        records = iter([record, None])
+        monkeypatch.setattr("voicedesign.launcher.running", lambda _: {"url": "http://local"})
+        monkeypatch.setattr("voicedesign.launcher.read_record", lambda _: next(records))
+        monkeypatch.setattr("voicedesign.launcher.urlopen", lambda *a, **kw: io.StringIO("{}"))
+        assert process.poll() is None
+        assert stop(workspace)["status"] == "stopped"
+        assert process.poll() == 0
+    finally:
+        process.wait(timeout=5)
 
 
 def test_public_contract_and_offline_docs(tmp_path):

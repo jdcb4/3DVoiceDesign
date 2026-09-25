@@ -5,9 +5,13 @@ description = "A local, conversation-driven parametric CAD workbench"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-  "cadquery==2.6.1", "fastapi>=0.115,<1", "uvicorn>=0.34,<1",
+  "cadquery==2.6.1",
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.34,<1",
   # Verified Windows combination; newer unconstrained dependencies crashed on CAD shutdown.
-  "casadi==3.7.2", "numpy==2.2.6",
+  "casadi==3.7.2",
+  "numpy==2.2.6",
+  "psutil>=7,<8",
 ]
 
 [dependency-groups]

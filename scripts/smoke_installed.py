@@ -64,6 +64,9 @@ def main():
             )
             assert (root / "part.zip").is_file()
             command(first, "stop")
+            # Windows refuses this rename until the server AND venv redirector exit.
+            log = Path(doctor["runtime_path"]) / "server.log"
+            log.rename(log.with_suffix(".previous.log"))
             assert command(first, "status")["status"] == "stopped"
             command(first, "start")
             assert (

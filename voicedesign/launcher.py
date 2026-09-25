@@ -14,6 +14,8 @@ from pathlib import Path
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
+import psutil
+
 from voicedesign import API_VERSION, __version__
 from voicedesign.config import PACKAGE, STATIC, resolve_workspace, user_home
 
@@ -65,6 +67,20 @@ def read_record(workspace):
     try:
         return json.loads(record_path(workspace).read_text(encoding="utf-8"))
     except (OSError, ValueError):
+        return None
+
+
+def process_identity(pid):
+    process = psutil.Process(pid)
+    return {"pid": pid, "created": process.create_time()}
+
+
+def recorded_process(identity):
+    """Resolve an identity without mistaking a recycled PID for our process."""
+    try:
+        process = psutil.Process(identity["pid"])
+        return process if process.create_time() == identity["created"] else None
+    except (psutil.NoSuchProcess, KeyError):
         return None
 
 
@@ -135,6 +151,18 @@ def start(workspace, port=None):
         deadline = time.monotonic() + 20
         while time.monotonic() < deadline:
             if live := running(workspace):
+                from voicedesign.storage import atomic_write
+
+                # Windows venv Python may be a redirector that also inherits the log.
+                atomic_write(
+                    workspace.runtime / "launcher.json",
+                    json.dumps(
+                        {
+                            "instance_id": live["instance_id"],
+                            "process": process_identity(process.pid),
+                        }
+                    ),
+                )
                 return live
             if process.poll() is not None:
                 break
@@ -147,6 +175,17 @@ def stop(workspace):
     if not live:
         return {"status": "stopped", "workspace_path": str(workspace.root)}
     record = read_record(workspace)
+    processes = []
+    identities = [record.get("process", {})]
+    try:
+        owner = json.loads((workspace.runtime / "launcher.json").read_text())
+        if owner.get("instance_id") == record["instance_id"]:
+            identities.append(owner["process"])
+    except (OSError, ValueError, KeyError):
+        pass
+    for identity in identities:
+        if process := recorded_process(identity):
+            processes.append(process)
     request = Request(
         live["url"] + "/api/runtime/stop",
         data=b"{}",
@@ -158,7 +197,10 @@ def stop(workspace):
     deadline = time.monotonic() + 110
     while time.monotonic() < deadline:
         if (read_record(workspace) or {}).get("instance_id") != record["instance_id"]:
-            return {"status": "stopped", "workspace_path": str(workspace.root)}
+            _, alive = psutil.wait_procs(processes, timeout=max(0, deadline - time.monotonic()))
+            if not alive:
+                return {"status": "stopped", "workspace_path": str(workspace.root)}
+            break
         time.sleep(0.2)
     raise RuntimeError(
         "Shutdown is still waiting for work to finish. Check status before restarting."
@@ -181,7 +223,12 @@ def serve(workspace, port=8743, container=False):
         )
         app.state.shutdown_token = token
         app.state.shutdown_callback = lambda: setattr(server, "should_exit", True)
-        record = {"port": port, "instance_id": instance, "token": token}
+        record = {
+            "port": port,
+            "instance_id": instance,
+            "token": token,
+            "process": process_identity(os.getpid()),
+        }
         atomic_write(record_path(workspace), json.dumps(record))
         if os.name != "nt":
             record_path(workspace).chmod(0o600)

@@ -19,8 +19,10 @@ The client does not start a guessed workspace. Startup does not install dependen
 
 Service identity includes the workspace and a random instance identifier. Stop
 uses an instance-specific local control token, not a guessed PID. The token is
-held in the user's runtime directory; keep that directory private. Local users
-with access to the same OS account are trusted. One OS-held workspace lock prevents
+held in the user's runtime directory; keep that directory private. You can
+restart or move runtime logs after `stop` returns: it waits for the
+server and launcher processes to exit, checking PID creation times against reuse.
+Users with access to the same OS account are trusted. One OS-held workspace lock prevents
 competing managed servers. Do not run multiple uvicorn workers or bypass the
 launcher. `create_app` is a test/embedding factory; its caller owns exclusivity.
 
